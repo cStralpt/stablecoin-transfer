@@ -39,6 +39,8 @@ export default function Home() {
     args: [address as Address],
   });
 
+  const idrRate = 15700;
+
   const handleConnect = async () => {
     try {
       connect({ connector: injected() });
@@ -109,9 +111,14 @@ export default function Home() {
                   onChange={(e) => setAmount(e.target.value)}
                 />
                 {amount && (
-                  <p className="text-sm text-muted-foreground">
-                    ≈ ${Number(amount).toFixed(2)} USD
-                  </p>
+                  <div className="space-y-1">
+                    <p className="text-sm text-muted-foreground">
+                      ≈ ${Number(amount).toFixed(2)} USD
+                    </p>
+                    <p className="text-sm text-muted-foreground">
+                      ≈ Rp {(Number(amount) * idrRate).toLocaleString('id-ID')} IDR
+                    </p>
+                  </div>
                 )}
               </div>
 
