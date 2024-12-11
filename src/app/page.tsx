@@ -10,23 +10,63 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
+import {
+  useAccount,
+  useConnect,
+  useDisconnect,
+  useWriteContract,
+  useReadContract,
+} from "wagmi";
 import { injected } from "wagmi/connectors";
+import { type Address, parseUnits } from "viem";
+import { TOKEN_ABI, USDC_ADDRESS } from "@/lib/contracts/token-abi";
 
 export default function Home() {
   const [amount, setAmount] = useState("");
   const [recipient, setRecipient] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
   const { address, isConnected } = useAccount();
   const { connect } = useConnect();
   const { disconnect } = useDisconnect();
 
-  const fiatRate = 1850;
+  const { writeContractAsync } = useWriteContract();
+
+  const { data: balance } = useReadContract({
+    address: USDC_ADDRESS,
+    abi: TOKEN_ABI,
+    functionName: "balanceOf",
+    args: [address as Address],
+  });
 
   const handleConnect = async () => {
     try {
-      await connect({ connector: injected() });
+      connect({ connector: injected() });
     } catch (error) {
       console.error("Failed to connect:", error);
+    }
+  };
+
+  const handleTransfer = async () => {
+    if (!amount || !recipient) return;
+
+    try {
+      setIsLoading(true);
+      const parsedAmount = parseUnits(amount, 6);
+
+      await writeContractAsync({
+        address: USDC_ADDRESS,
+        abi: TOKEN_ABI,
+        functionName: "transfer",
+        args: [recipient as Address, parsedAmount],
+      });
+
+      setAmount("");
+      setRecipient("");
+    } catch (error) {
+      console.error("Transfer failed:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -35,7 +75,7 @@ export default function Home() {
       <Card className="w-[400px]">
         <CardHeader>
           <CardTitle>Crypto Transfer</CardTitle>
-          <CardDescription>Transfer USDT/USDC on testnet</CardDescription>
+          <CardDescription>Transfer USDC on Avalanche Fuji</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           {!isConnected ? (
@@ -51,9 +91,15 @@ export default function Home() {
                 </p>
               </div>
 
+              {balance && (
+                <div className="text-sm text-muted-foreground">
+                  Balance: {Number(balance) / 1e6} USDC
+                </div>
+              )}
+
               <div className="space-y-2">
                 <label className="text-sm font-medium" htmlFor="amount">
-                  Amount (USDT)
+                  Amount (USDC)
                 </label>
                 <Input
                   id="amount"
@@ -64,7 +110,7 @@ export default function Home() {
                 />
                 {amount && (
                   <p className="text-sm text-muted-foreground">
-                    ≈ ${(Number.parseFloat(amount) * fiatRate).toFixed(2)} USD
+                    ≈ ${Number(amount).toFixed(2)} USD
                   </p>
                 )}
               </div>
@@ -81,8 +127,12 @@ export default function Home() {
                 />
               </div>
 
-              <Button className="w-full" disabled={!amount || !recipient}>
-                Transfer
+              <Button
+                className="w-full"
+                disabled={!amount || !recipient || isLoading}
+                onClick={handleTransfer}
+              >
+                {isLoading ? "Transferring..." : "Transfer"}
               </Button>
 
               <Button
