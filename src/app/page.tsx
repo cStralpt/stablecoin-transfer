@@ -20,6 +20,8 @@ import {
 import { injected } from "wagmi/connectors";
 import { type Address, parseUnits } from "viem";
 import { TOKEN_ABI, USDC_ADDRESS } from "@/lib/contracts/token-abi";
+import { avalancheFuji } from "viem/chains";
+import { createWalletClient, custom } from "viem";
 
 export default function Home() {
   const [amount, setAmount] = useState("");
@@ -40,6 +42,33 @@ export default function Home() {
   });
 
   const idrRate = 15700;
+
+  const addNetwork = async () => {
+    if (!window.ethereum) throw new Error("No ethereum wallet found");
+    const walletClient = createWalletClient({
+      chain: avalancheFuji,
+      transport: custom(window.ethereum),
+    });
+
+    try {
+      await walletClient.switchChain({ id: avalancheFuji.id });
+    } catch (error: unknown) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        error.code === 4902
+      ) {
+        try {
+          await walletClient.addChain({ chain: avalancheFuji });
+        } catch (addError) {
+          console.error("Failed to add network:", addError);
+        }
+      } else {
+        console.error("Failed to switch network:", error);
+      }
+    }
+  };
 
   const handleConnect = async () => {
     try {
@@ -81,9 +110,14 @@ export default function Home() {
         </CardHeader>
         <CardContent className="space-y-4">
           {!isConnected ? (
-            <Button onClick={handleConnect} className="w-full">
-              Connect Wallet
-            </Button>
+            <>
+              <Button onClick={handleConnect} className="w-full">
+                Connect Wallet
+              </Button>
+              <Button onClick={addNetwork} variant="outline" className="w-full">
+                Add Fuji Network
+              </Button>
+            </>
           ) : (
             <>
               <div className="space-y-2">
@@ -116,7 +150,8 @@ export default function Home() {
                       ≈ ${Number(amount).toFixed(2)} USD
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      ≈ Rp {(Number(amount) * idrRate).toLocaleString('id-ID')} IDR
+                      ≈ Rp {(Number(amount) * idrRate).toLocaleString("id-ID")}{" "}
+                      IDR
                     </p>
                   </div>
                 )}
