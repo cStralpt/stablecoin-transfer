@@ -2,10 +2,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { useTokenTransfer } from "@/hooks/useTokenTransfer";
+import { useEffect, useState } from "react";
 
 const IDR_RATE = 15700;
 
 export function TransferForm() {
+  const [isMounted, setIsMounted] = useState(false);
   const { address, disconnect } = useWalletConnection();
   const {
     amount,
@@ -16,6 +18,21 @@ export function TransferForm() {
     balance,
     handleTransfer,
   } = useTokenTransfer(address);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="space-y-4">
+        <div className="h-20 bg-gray-200 rounded animate-pulse" />
+        <div className="h-32 bg-gray-200 rounded animate-pulse" />
+        <div className="h-32 bg-gray-200 rounded animate-pulse" />
+        <div className="h-10 bg-gray-200 rounded animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <>
@@ -78,4 +95,4 @@ export function TransferForm() {
       </Button>
     </>
   );
-} 
+}

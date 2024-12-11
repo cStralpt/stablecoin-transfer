@@ -1,4 +1,3 @@
-"use client";
 import {
   Card,
   CardContent,
@@ -6,13 +5,9 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { WalletConnection } from "@/components/WalletConnection";
-import { TransferForm } from "@/components/TransferForm";
-import { useWalletConnection } from "@/hooks/useWalletConnection";
+import { TransferContainer } from "@/components/TransferContainer";
 
 export default function Home() {
-  const { isConnected } = useWalletConnection();
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center p-24">
       <Card className="w-[400px]">
@@ -21,7 +16,7 @@ export default function Home() {
           <CardDescription>Transfer USDC on Avalanche Fuji</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {!isConnected ? <WalletConnection /> : <TransferForm />}
+          <TransferContainer />
         </CardContent>
       </Card>
     </main>
