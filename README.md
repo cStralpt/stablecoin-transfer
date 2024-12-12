@@ -33,7 +33,9 @@ I use BiomeJS as a linter and formatter to maintain consistent coding styles acr
 
 ## Faucets
 since this project interact with USDC deployed on Avalanche Fuji Testnet, testnet Avax are required in order to use this app.
+
 Avax:
 https://faucets.chain.link/fuji
+
 USDC faucets, make sure to choose network Avalanche Fuji:
 https://faucet.circle.com/
