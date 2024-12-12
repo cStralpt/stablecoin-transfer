@@ -3,12 +3,14 @@ import { Input } from "@/components/ui/input";
 import { useWalletConnection } from "@/hooks/useWalletConnection";
 import { useTokenTransfer } from "@/hooks/useTokenTransfer";
 import { useEffect, useState } from "react";
+import type { Address } from "viem";
 
 const IDR_RATE = 15700;
 
 export function TransferForm() {
   const [isMounted, setIsMounted] = useState(false);
   const { address, disconnect } = useWalletConnection();
+  const [txHash, setTxHash] = useState<Address | undefined>(undefined);
   const {
     amount,
     setAmount,
@@ -22,6 +24,15 @@ export function TransferForm() {
   useEffect(() => {
     setIsMounted(true);
   }, []);
+
+  const handleTransferClick = async () => {
+    try {
+      const hash = await handleTransfer();
+      setTxHash(hash);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   if (!isMounted) {
     return (
@@ -85,10 +96,21 @@ export function TransferForm() {
       <Button
         className="w-full"
         disabled={!amount || !recipient || isLoading}
-        onClick={handleTransfer}
+        onClick={handleTransferClick}
       >
         {isLoading ? "Transferring..." : "Transfer"}
       </Button>
+
+      {txHash && (
+        <a
+          href={`https://testnet.snowtrace.io/tx/${txHash}`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-blue-500 hover:text-blue-600 block text-center"
+        >
+          View transaction on Explorer
+        </a>
+      )}
 
       <Button variant="outline" onClick={() => disconnect()} className="w-full">
         Disconnect

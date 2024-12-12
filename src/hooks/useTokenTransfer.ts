@@ -23,7 +23,7 @@ export function useTokenTransfer(address: Address | undefined) {
       setIsLoading(true);
       const parsedAmount = parseUnits(amount, 6);
 
-      await writeContractAsync({
+      const hash = await writeContractAsync({
         address: USDC_ADDRESS,
         abi: TOKEN_ABI,
         functionName: "transfer",
@@ -32,8 +32,10 @@ export function useTokenTransfer(address: Address | undefined) {
 
       setAmount("");
       setRecipient("");
+      return hash;
     } catch (error) {
       console.error("Transfer failed:", error);
+      throw error;
     } finally {
       setIsLoading(false);
     }
